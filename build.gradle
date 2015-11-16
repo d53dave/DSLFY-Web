@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '1.2.6.RELEASE'
+        springBootVersion = '1.2.7.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -28,21 +28,35 @@ repositories {
     mavenCentral()
 }
 
+//configurations {
+//    compile.exclude module: "spring-boot-starter-tomcat"
+//}
+
 
 dependencies {
-    compile('org.springframework.boot:spring-boot-starter-actuator')
-    compile('org.springframework.boot:spring-boot-starter-data-elasticsearch')
-    compile('org.springframework.boot:spring-boot-starter-data-jpa')
-    compile('org.springframework.boot:spring-boot-starter-data-rest')
-    compile('org.springframework.boot:spring-boot-starter-jdbc')
-    compile('org.springframework.boot:spring-boot-starter-mobile')
-    compile('org.springframework.boot:spring-boot-starter-security')
-    compile('org.springframework.boot:spring-boot-starter-social-facebook')
-    compile('org.springframework.boot:spring-boot-starter-social-linkedin')
-    compile('org.springframework.boot:spring-boot-starter-social-twitter')
-    compile('org.springframework.boot:spring-boot-starter-thymeleaf')
-    runtime('org.postgresql:postgresql:9.4-1201-jdbc41')
-    testCompile('org.springframework.boot:spring-boot-starter-test') 
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.springframework.boot:spring-boot-starter-data-rest'
+    compile 'org.springframework.boot:spring-boot-starter-jdbc'
+    compile 'org.springframework.boot:spring-boot-starter-mobile'
+    compile 'org.springframework.boot:spring-boot-starter-security'
+    compile 'org.springframework.data:spring-data-mongodb'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework:spring-context-support:4.2.3.RELEASE'
+//    compile("org.springframework.boot:spring-boot-starter-tomcat")
+//    compile 'org.springframework.boot:spring-boot-starter-jetty'
+    compile 'org.jasypt:jasypt:1.9.2'
+
+    compile 'net.sf.ehcache:ehcache:2.10.1'
+
+
+    // Image stuff
+    compile 'jmagick:jmagick:6.6.9'
+    compile 'net.bramp.ffmpeg:ffmpeg:0.2'
+
+    compile 'org.postgresql:postgresql:9.4-1205-jdbc42'
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
 
 
@@ -52,6 +66,18 @@ eclipse {
          containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
     }
 }
+
+jar {
+    from{
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }{
+                exclude "license/" //cant unpack jar because of folder conflicts, TODO:delete me some time later
+    }
+    manifest {
+        attributes 'Main-Class': 'net.d53dev.dslfy.web.DSLFYWebApplication'
+    }
+}
+
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.7'
