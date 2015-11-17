@@ -57,6 +57,7 @@ dependencies {
     compile 'org.postgresql:postgresql:9.4-1205-jdbc42'
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'com.jayway.restassured:rest-assured:2.7.0'
 }
 
 

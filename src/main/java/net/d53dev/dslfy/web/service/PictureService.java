@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by davidsere on 16/11/15.
@@ -81,5 +83,27 @@ public class PictureService {
         repouser.getUserImages().size();
 
         return repouser.getUserImages();
+    }
+
+    public Collection<String> getPicturesForUserFriendStream(Long userId){
+        DSLFYUser repouser = userRepository.findOne(userId);
+
+        if(repouser == null){
+            return null;
+        }
+
+        Set<DSLFYImage> images = repouser.getUserImages();
+
+        return images
+                .stream()
+                .sorted( (image1, image2)
+                        -> image1.getCreateDate().compareTo(image2.getCreateDate()))
+                .limit(50)
+                .map( this::mapImageToUrl ).collect(Collectors.toList());
+
+    }
+
+    private String mapImageToUrl(DSLFYImage image){
+        return null;
     }
 }

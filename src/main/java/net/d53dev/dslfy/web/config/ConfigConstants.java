@@ -4,6 +4,8 @@ package net.d53dev.dslfy.web.config;
  * Created by davidsere on 16/11/15.
  */
 public class ConfigConstants {
+    public static final String API_TOKEN_IDENTIFIER = "API_TOKEN_IDENTIFIER";
+    public static final String API_TOKEN_HEADERNAME = "X-API-TOKEN";
 
     public static final String MONGO_DB_NAME = "dslfy-web";
     public static final String MONGO_DB_HOST = "127.0.0.1";

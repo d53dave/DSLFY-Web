@@ -31,9 +31,6 @@ public class DSLFYUser implements Comparable{
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @ElementCollection(fetch= FetchType.EAGER)
-    private Set<String> authorities;
-
     @OneToMany
     @ElementCollection(fetch=FetchType.LAZY)
     private Set<DSLFYImage> userImages;
@@ -43,14 +40,11 @@ public class DSLFYUser implements Comparable{
     private Set<DSLFYUser> friends;
 
     public DSLFYUser(){
-        this.userImages = new TreeSet<DSLFYImage>();
-        this.friends = new TreeSet<DSLFYUser>();
     }
 
-    public DSLFYUser(String username, String... authorities) {
+    public DSLFYUser(String username) {
         this();
         this.username = username;
-        this.authorities = Sets.newHashSet(authorities);
     }
 
     public String getUsername() {

@@ -1,5 +1,6 @@
 package net.d53dev.dslfy.web.auth;
 
+import net.d53dev.dslfy.web.config.ConfigConstants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.springframework.security.core.Authentication;
@@ -12,8 +13,6 @@ import java.util.Collection;
  * Created by davidsere on 16/11/15.
  */
 public class APIAuthenticationToken implements Authentication, CredentialsContainer {
-
-    public static final String API_TOKEN_IDENTIFIER = "API_TOKEN";
 
     private final String token;
     private final Collection<GrantedAuthority> grantedAuthorities;
@@ -37,7 +36,7 @@ public class APIAuthenticationToken implements Authentication, CredentialsContai
 
     @Override
     public Object getDetails() {
-        return API_TOKEN_IDENTIFIER;
+        return ConfigConstants.API_TOKEN_IDENTIFIER;
     }
 
     @Override

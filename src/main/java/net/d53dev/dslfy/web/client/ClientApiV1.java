@@ -8,11 +8,15 @@ public class ClientApiV1 {
 
     public static final String LOGIN =          apiPrefix+"login";
 
+    public static final String USER_PROFILE =        apiPrefix+"user/{userId}";
     public static final String USER_UPLOAD =         apiPrefix+"user/{userId}/upload";
     public static final String USER_DELETE =         apiPrefix+"user/{userId}/picture/{pictureId}";
     public static final String USER_LOGOUT =         apiPrefix+"user/{userId}/logout";
     public static final String USER_PICTURES =       apiPrefix+"user/{userId}/pictures";
     public static final String USER_REQUEST_ANIM =   apiPrefix+"user/{userId}/process";
-    public static final String USER_ADD_FRIEND  =    apiPrefix+"user/{userId}/friend/{friendId}";
+    public static final String USER_ADD_FRIEND =     apiPrefix+"user/{userId}/friend/{friendName}";
     public static final String USER_ADD_FRIENDS =    apiPrefix+"user/{userId}/friends";
+    public static final String USER_FRIEND_STREAM =  apiPrefix+"user/{userId}/friends/stream";
+
+    public static final String PICTURE_GET =         apiPrefix+"picture/{imageId}";
 }

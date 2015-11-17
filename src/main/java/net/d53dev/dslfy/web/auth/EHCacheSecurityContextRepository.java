@@ -44,7 +44,7 @@ public class EHCacheSecurityContextRepository implements SecurityContextReposito
     public void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = context.getAuthentication();
         if(authentication != null) {
-            if (authentication.getDetails().equals(APIAuthenticationToken.API_TOKEN_IDENTIFIER)) {
+            if (authentication.getDetails().equals(ConfigConstants.API_TOKEN_IDENTIFIER)) {
                 LOGGER.info("Saving context for token "+authentication.getCredentials());
                 String token = authentication.getCredentials().toString();
                 cache.put(new Element(ConfigConstants.EH_CACHE_TOKEN_PREFIX+token, context));
@@ -110,7 +110,7 @@ public class EHCacheSecurityContextRepository implements SecurityContextReposito
     }
 
     private String getTokenFromHeader(HttpServletRequest request){
-        String token = request.getHeader("X-API-TOKEN");
+        String token = request.getHeader(ConfigConstants.API_TOKEN_HEADERNAME);
         if(StringUtils.isBlank(token)){
             token = null;
         }

@@ -1,6 +1,7 @@
 package net.d53dev.dslfy.web.config;
 
 import net.d53dev.dslfy.web.auth.APIAuthenticationEntryPoint;
+import net.d53dev.dslfy.web.auth.APIAuthenticationProvider;
 import net.d53dev.dslfy.web.auth.EHCacheSecurityContextRepository;
 import net.d53dev.dslfy.web.client.ClientApiV1;
 import net.d53dev.dslfy.web.repository.UserRepository;
@@ -25,7 +26,7 @@ import org.springframework.security.web.header.writers.frameoptions.XFrameOption
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    APIAuthenticationEntryPoint authenticationEntryPoint;
+    private APIAuthenticationEntryPoint authenticationEntryPoint;
 
     @Autowired
     private EHCacheSecurityContextRepository securityContextRepository;
@@ -41,16 +42,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/").permitAll()
                 .anyRequest().authenticated();
 
-//        http
-//                .formLogin()
-//
-//                .loginPage("/login")
-//                .permitAll()
-//                .and()
-//                .logout()
-//                .permitAll();
-
-        http.headers()
+        http
+                .headers()
                 .addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
                         //.addHeaderWriter(new XContentTypeOptionsHeaderWriter())
                 .addHeaderWriter(new XXssProtectionHeaderWriter())
@@ -62,5 +55,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf()
                 .disable();
+    }
+
+
+    @Configuration
+    protected static class AuthenticationConfiguration extends
+            GlobalAuthenticationConfigurerAdapter {
+        @Autowired
+        private APIAuthenticationProvider authenticationProvider;
+
+        @Override
+        public void init(AuthenticationManagerBuilder auth) throws Exception {
+            auth.authenticationProvider(authenticationProvider);
+        }
+
     }
 }
