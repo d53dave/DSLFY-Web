@@ -7,6 +7,7 @@ import net.d53dev.dslfy.web.repository.ImageDataRepository;
 import net.d53dev.dslfy.web.repository.ImageRepository;
 import net.d53dev.dslfy.web.repository.UserRepository;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,5 +39,10 @@ public class PictureIntegrationTest {
         imageRepository.deleteAll();
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.port = port;
+    }
+
+    @Test
+    public void uploadImageTest(){
+
     }
 }
