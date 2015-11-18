@@ -43,6 +43,8 @@ dependencies {
     compile 'org.springframework.data:spring-data-mongodb'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework:spring-context-support:4.2.3.RELEASE'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.6.3'
+
 //    compile("org.springframework.boot:spring-boot-starter-tomcat")
 //    compile 'org.springframework.boot:spring-boot-starter-jetty'
     compile 'org.jasypt:jasypt:1.9.2'

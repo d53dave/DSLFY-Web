@@ -54,19 +54,34 @@ public class UserIntegrationTest {
         RestAssured.port = port;
     }
 
+
     @Test
-    public void repoTest(){
-        DSLFYUser user1 = new DSLFYUser();
-        user1.setUsername("user1@home.com");
+    public void apiTokenTest(){
+        final String username = "testuser42@facebook.internal.com";
 
-        DSLFYUser user2 = new DSLFYUser();
-        user2.setUsername("user2");
+        Map<String, Object> jsonAsMap = new HashMap<>();
+        jsonAsMap.put("username", username);
 
-        userRepository.save(user1);
-        userRepository.save(user2);
+        // Get the token
+        DSLFYUser user =
+            given()
+                .contentType(ContentType.JSON)
+                .request().body(jsonAsMap)
+            .when()
+                .post(ClientApiV1.apiPrefix+"login")
+            .then()
+                .assertThat().statusCode(200)
+                .body("activeToken",    is(notNullValue()))
+            .extract()
+                .body().as(DSLFYUser.class);
 
-        Assert.assertNotNull(userRepository.findByUsername("user1@home.com"));
-        Assert.assertNotNull(userRepository.findByUsername("user2"));
+        given()
+                .content(ContentType.JSON)
+                .header(ConfigConstants.API_TOKEN_HEADERNAME, user.getActiveToken())
+            .when()
+                .get(ClientApiV1.apiPrefix+"user/"+user.getId())
+            .then()
+                .assertThat().statusCode(200);
     }
 
     @Test
@@ -130,18 +145,17 @@ public class UserIntegrationTest {
 
         Assert.assertNotEquals(user1, user2);
 
-        System.out.println("Posting against "+ClientApiV1.apiPrefix+"user/"+user1.getId()+"/friend/"+ URLEncoder.encode(user2.getUsername(), "UTF-8"));
-
-        user1 = given()
+        user1 =
+            given()
                 .content(ContentType.JSON)
                 .header(ConfigConstants.API_TOKEN_HEADERNAME, user1.getActiveToken())
-        .when()
+            .when()
                 .put(ClientApiV1.apiPrefix+"user/"+user1.getId()+"/friend/"+
                         Base64.getEncoder().encodeToString(user2.getUsername().getBytes("UTF-8")))
-        .then()
+            .then()
                 .assertThat().statusCode(200)
                 .body("friends", hasSize(greaterThan(0)))
-        .extract()
+            .extract()
                 .body().as(DSLFYUser.class);
 
         Assert.assertEquals(user1.getFriends().iterator().next().getId(), user2.getId());

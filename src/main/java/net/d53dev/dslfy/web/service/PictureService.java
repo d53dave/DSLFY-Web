@@ -1,19 +1,23 @@
 package net.d53dev.dslfy.web.service;
 
 import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import com.mongodb.gridfs.GridFSInputFile;
+import net.d53dev.dslfy.web.model.DSLFYFilter;
 import net.d53dev.dslfy.web.model.DSLFYImage;
 import net.d53dev.dslfy.web.model.DSLFYImageData;
 import net.d53dev.dslfy.web.model.DSLFYUser;
 import net.d53dev.dslfy.web.repository.ImageDataRepository;
 import net.d53dev.dslfy.web.repository.ImageRepository;
 import net.d53dev.dslfy.web.repository.UserRepository;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -36,6 +40,11 @@ public class PictureService {
     @Autowired
     private ImageDataRepository imageDataRepository;
 
+    public PictureService(){
+//        this.imageRepository.deleteAll();
+//        this.clearGridFS();
+    }
+
     public Iterable<DSLFYImage> getImagesForIds(Long... ids){
         return imageRepository.findAll(Arrays.asList(ids));
     }
@@ -43,7 +52,7 @@ public class PictureService {
     public Iterable<DSLFYImage> getImagesForIdsWithImageData(Long... ids){
         Iterable<DSLFYImage> images = this.getImagesForIds(ids);
         images.forEach(img -> {
-            DSLFYImageData imageData = mapGridFSFile(imageDataRepository.getById(img.getId() + ""));
+            DSLFYImageData imageData = mapGridFSFile(imageDataRepository.getById(img.getImageDataId()));
 
             img.setImageData(imageData);
         });
@@ -51,25 +60,33 @@ public class PictureService {
         return images;
     }
 
-    private DSLFYImageData mapGridFSFile(GridFSFile gridFSFile){
+    private DSLFYImageData mapGridFSFile(GridFSDBFile gridFSFile){
         if(gridFSFile == null){
             return null;
         }
 
         DSLFYImageData imageData = new DSLFYImageData();
-        byte[] rawData = (byte[]) gridFSFile.get("imageData");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            gridFSFile.writeTo(baos);
+        } catch (IOException e) {
+            LOGGER.error(e.getLocalizedMessage());
+            return null;
+        }
+        byte[] rawData = (byte[]) baos.toByteArray();
         imageData.setImageData(rawData);
 
         return imageData;
     }
 
-    public void saveImage(DSLFYImage image){
-        this.imageRepository.save(image);
+    public DSLFYImage saveImage(DSLFYImage image){
+        return this.imageRepository.save(image);
     }
 
     public void saveImageWithImageData(DSLFYImage image, MultipartFile multipartFile){
+        String id = this.imageDataRepository.store(image, multipartFile);
+        image.setImageDataId(id);
         this.saveImage(image);
-        this.imageDataRepository.store(image, multipartFile);
     }
 
     public Collection<DSLFYImage> getPicturesForUser(Long userId){
@@ -101,6 +118,10 @@ public class PictureService {
                 .limit(50)
                 .map( this::mapImageToUrl ).collect(Collectors.toList());
 
+    }
+
+    private void clearGridFS(){
+        this.imageDataRepository.clearData();
     }
 
     private String mapImageToUrl(DSLFYImage image){

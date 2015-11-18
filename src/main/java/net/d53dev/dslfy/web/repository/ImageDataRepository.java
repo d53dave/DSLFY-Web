@@ -59,6 +59,10 @@ public class ImageDataRepository {
                 new Query(Criteria.where("filename").is(fileName)));
     }
 
+    public void clearData(){
+        gridFsTemplate.delete(null);
+    }
+
     public List findAll() {
         return gridFsTemplate.find(null);
     }

@@ -8,7 +8,7 @@ public class ConfigConstants {
     public static final String API_TOKEN_HEADERNAME = "X-API-TOKEN";
 
     public static final String MONGO_DB_NAME = "dslfy-web";
-    public static final String MONGO_DB_HOST = "127.0.0.1";
+    public static final String MONGO_DB_HOST = "127.0.0.1:27017";
 
     public static final String EH_CACHE_NAME = "dslfy-cache";
     public static final String EH_CACHE_POLICY = "LRU";

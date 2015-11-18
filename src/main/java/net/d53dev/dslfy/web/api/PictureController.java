@@ -1,26 +1,35 @@
 package net.d53dev.dslfy.web.api;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.d53dev.dslfy.web.client.ClientApiV1;
 import net.d53dev.dslfy.web.model.DSLFYAnimation;
 import net.d53dev.dslfy.web.model.DSLFYImage;
+import net.d53dev.dslfy.web.model.DSLFYImageData;
+import net.d53dev.dslfy.web.service.ImageProcessingService;
 import net.d53dev.dslfy.web.service.PictureService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.header.Header;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by davidsere on 10/11/15.
@@ -31,22 +40,46 @@ public class PictureController {
     @Autowired
     private PictureService pictureService;
 
+    @Autowired
+    private ImageProcessingService imageProcessingService;
+
     private static final Logger LOGGER = Logger.getLogger(PictureController.class);
 
     @RequestMapping(value = ClientApiV1.PICTURE_GET, method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
-    public @ResponseBody byte[] getImage(@PathVariable Long imageId, Principal principal, HttpServletResponse response){
+    public @ResponseBody
+    byte[] getImage(@PathVariable Long imageId, Principal principal, HttpServletResponse response){
         // TODO: This does not check if a user is allowed to obtain the image
         LOGGER.debug("Getting image for principal "+principal.getName());
 
-        // only a normal token check is performed
-        Iterable<DSLFYImage> images = pictureService.getImagesForIdsWithImageData(imageId);
+        Iterable<DSLFYImage> images = this.pictureService.getImagesForIdsWithImageData(imageId);
 
-        if(images == null || Iterables.isEmpty(images)){
+        if(images == null || Iterators.size(images.iterator()) == 0){
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             return null;
         }
 
         return images.iterator().next().getImageData().getImageData();
+
+    }
+
+    @RequestMapping(value = ClientApiV1.apiPrefix+"videotest", method = RequestMethod.GET)
+    public @ResponseBody ResponseEntity<byte[]> getVideo(Principal principal, HttpServletResponse response){
+        LOGGER.debug("Getting video for principal "+principal.getName());
+
+        try {
+            LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
+            headers.put("Content-Type", Lists.newArrayList("video/mp4"));
+            byte[] bytes = imageProcessingService.testProcess();
+            ResponseEntity<byte[]> responseBytes = new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
+            return responseBytes;
+        } catch (IOException e) {
+
+            e.printStackTrace();
+            return null;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @RequestMapping(value = ClientApiV1.USER_REQUEST_ANIM, method = RequestMethod.GET)
@@ -78,24 +111,29 @@ public class PictureController {
 
 
     @RequestMapping(value = ClientApiV1.USER_UPLOAD, method=RequestMethod.POST)
-    public @ResponseBody String handleFileUpload(@PathVariable("userId") String userId,
-                                                 @RequestParam("name") String name,
-                                                 @RequestParam("file") MultipartFile file){
+    public @ResponseBody DSLFYImage handleFileUpload(@PathVariable("userId") Long userId,
+                                                    @RequestParam("file") MultipartFile file,
+                                                     HttpServletResponse response){
         if (!file.isEmpty()) {
             try {
                 DSLFYImage image = new DSLFYImage();
+                image.setDescriptor(file.getOriginalFilename());
+//                image.setCreateDate();
+                image.setUploadDate(LocalDateTime.now());
 
-                byte[] bytes = file.getBytes();
-                BufferedOutputStream stream =
-                        new BufferedOutputStream(new FileOutputStream(new File(name)));
-                stream.write(bytes);
-                stream.close();
-                return "You successfully uploaded " + name + "!";
+                pictureService.saveImageWithImageData(image, file);
+
+                image.setImageData(null); //dont write the data to response
+
+                return image;
             } catch (Exception e) {
-                return "You failed to upload " + name + " => " + e.getMessage();
+                LOGGER.error(e.getLocalizedMessage());
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return null;
             }
         } else {
-            return "You failed to upload " + name + " because the file was empty.";
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return null;
         }
     }
 }

@@ -26,6 +26,8 @@ public class DSLFYImage implements Comparable<DSLFYImage>{
     private LocalDateTime uploadDate;
     private LocalDateTime processingDate;
 
+    private String imageDataId;
+
     @Transient
     private DSLFYImageData imageData;
 
@@ -88,5 +90,13 @@ public class DSLFYImage implements Comparable<DSLFYImage>{
     @Override
     public int compareTo(DSLFYImage o) {
         return CompareToBuilder.reflectionCompare(this, o);
+    }
+
+    public String getImageDataId() {
+        return imageDataId;
+    }
+
+    public void setImageDataId(String imageDataId) {
+        this.imageDataId = imageDataId;
     }
 }
