@@ -69,6 +69,7 @@ public class PictureController {
         try {
             LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<String, String>();
             headers.put("Content-Type", Lists.newArrayList("video/mp4"));
+            headers.put("Content-disposition", Lists.newArrayList("attachment; filename=dog.mp4"));
             byte[] bytes = imageProcessingService.testProcess();
             ResponseEntity<byte[]> responseBytes = new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
             return responseBytes;
@@ -80,6 +81,13 @@ public class PictureController {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @RequestMapping(value = ClientApiV1.apiPrefix+"giftest", method = RequestMethod.GET, produces = MediaType.IMAGE_GIF_VALUE)
+    public @ResponseBody byte[] getGif(Principal principal, HttpServletResponse response) throws Exception {
+        LOGGER.debug("Getting gif for principal "+principal.getName());
+
+        return imageProcessingService.testGif();
     }
 
     @RequestMapping(value = ClientApiV1.USER_REQUEST_ANIM, method = RequestMethod.GET)

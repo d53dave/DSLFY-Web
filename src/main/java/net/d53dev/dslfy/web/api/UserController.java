@@ -110,7 +110,7 @@ public class UserController {
 
         this.doLogin(userFromRepo, request, response);
 
-        return user;
+        return userFromRepo;
     }
 
     @RequestMapping(value = "/", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

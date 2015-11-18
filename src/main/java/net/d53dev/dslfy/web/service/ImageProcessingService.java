@@ -1,5 +1,6 @@
 package net.d53dev.dslfy.web.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFmpegExecutor;
@@ -17,7 +18,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.WebApplicationContext;
 
+import javax.imageio.ImageIO;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.List;
 
 /**
  * Created by davidsere on 16/11/15.
@@ -30,9 +36,41 @@ public class ImageProcessingService {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private FFmpegUtil fFmpegUtil;
+
+    @Autowired
+    private GifService gifService;
+
     public ImageProcessingService() throws IOException {
         this.ffmpeg = new FFmpeg(ConfigConstants.FFMPEG_PATH);
         this.ffprobe = new FFprobe(ConfigConstants.FFPROBE_PATH);
+    }
+
+    public byte[] testGif() throws Exception {
+        Resource resource1 = webApplicationContext.getResource("classpath:dog1.jpg");
+        Resource resource2 = webApplicationContext.getResource("classpath:dog2.jpg");
+        Resource resource3 = webApplicationContext.getResource("classpath:dog3.jpg");
+        Resource resource4 = webApplicationContext.getResource("classpath:dog4.jpg");
+
+        File tempdir = File.createTempFile("dslfy","");
+        tempdir.delete();
+        tempdir.mkdir();
+
+        List<GifService.GifFrame> gifFrameList = Lists.newArrayList();
+        for(Resource r:  new Resource[]{resource1, resource2, resource3, resource4}){
+            BufferedImage img = gifService.convertRGBAToGIF(ImageIO.read(r.getInputStream()), Color.TRANSLUCENT);
+            long delay = 1000; // every frame takes 100ms
+            String disposal = GifService.GifFrame.RESTORE_TO_BGCOLOR; // make transparent pixels not 'shine through'
+            gifFrameList.add(gifService.new GifFrame(img, delay, disposal));
+        }
+
+        int loopCount = 0; //loop indefinitelu
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        gifService.saveAnimatedGIF(baos, gifFrameList, loopCount);
+
+        return baos.toByteArray();
     }
 
     public byte[] testProcess() throws IOException, InterruptedException {
@@ -41,7 +79,7 @@ public class ImageProcessingService {
         Resource resource3 = webApplicationContext.getResource("classpath:dog3.jpg");
         Resource resource4 = webApplicationContext.getResource("classpath:dog4.jpg");
 
-        File tempdir = File.createTempFile("folder-name","");
+        File tempdir = File.createTempFile("dslfy","");
         tempdir.delete();
         tempdir.mkdir();
 
@@ -55,9 +93,9 @@ public class ImageProcessingService {
         ImageMagickUtil imageMagickUtil = new ImageMagickUtil();
         imageMagickUtil.mogrify(tempdir.getCanonicalPath());
 
-        FFmpegUtil.createMorphMp4(tempdir.getCanonicalPath());
+        File f = fFmpegUtil.createMorphMp4(tempdir.getCanonicalPath());
 
-        return IOUtils.toByteArray(new FileInputStream(tempdir.getCanonicalPath()+"/output.mp4"));
+        return IOUtils.toByteArray(new FileInputStream(f));
     }
 
     public void doSomeThings(String file){
